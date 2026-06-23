@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+
+<model-hints>
+	<model name="com.example.todo.model.Todo">
+		<field name="todoId" type="long" />
+		<field name="text" type="String" />
+		<field name="completed" type="boolean" />
+	</model>
+</model-hints>

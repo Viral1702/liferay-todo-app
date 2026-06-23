@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: liferay-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: lportal
+      MYSQL_USER: viral
+      MYSQL_PASSWORD: viral
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  liferay:
+    image: liferay/portal:7.4.3.120-ga120
+    container_name: liferay-portal
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+      - "11311:11311"
+    environment:
+      LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_DRIVER_UPPERCASEC_LASS_UPPERCASEN_AME: com.mysql.cj.jdbc.Driver
+      LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_URL: "jdbc:mysql://mysql:3306/lportal?characterEncoding=UTF-8&dontTrackOpenResources=true&holdResultsOpenOverStatementClose=true&serverTimezone=GMT&useFastDateParsing=false&useUnicode=true"
+      LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_USERNAME: viral
+      LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_PASSWORD: viral
+    volumes:
+      - liferay_data:/opt/liferay/data
+      - ./deploy:/mnt/liferay/deploy
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  liferay_data:

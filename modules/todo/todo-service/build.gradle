@@ -1,0 +1,16 @@
+plugins {
+	id "com.liferay.portal.tools.service.builder"
+}
+
+dependencies {
+	api project(":modules:todo:todo-api")
+
+	compileOnly group: "com.liferay.portal", name: "release.portal.api"
+}
+
+buildService {
+	apiDir = "../todo-api/src/main/java"
+	testDir = "../todo-test/src/testIntegration/java"
+}
+
+group = "com.example.todo"

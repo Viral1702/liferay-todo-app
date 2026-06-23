@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.4.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_4_0.dtd">
+<service-builder dependency-injector="ds" package-path="com.example.todo">
+    <namespace>TODO</namespace>
+    
+    <entity name="Todo" local-service="true" remote-service="false">
+    	<column name="todoId" type="long" primary="true" />
+    	<column name="text" type="String" />
+    	<column name="completed" type="boolean" />
+    </entity>
+</service-builder>

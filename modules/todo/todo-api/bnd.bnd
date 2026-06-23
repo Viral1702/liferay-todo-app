@@ -1,0 +1,10 @@
+Bundle-Name: todo-api
+Bundle-SymbolicName: com.example.todo.api
+Bundle-Version: 1.0.0
+Export-Package:\
+	com.example.todo.exception,\
+	com.example.todo.model,\
+	com.example.todo.service,\
+	com.example.todo.service.persistence
+-check: EXPORTS
+-includeresource: META-INF/service.xml=../todo-service/service.xml
