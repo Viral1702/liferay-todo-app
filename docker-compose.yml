@@ -44,11 +44,9 @@ services:
     environment:
       LIFERAY_JVM_OPTS: "-Xms1536m -Xmx2048m -XX:MaxMetaspaceSize=384m"
       # Allow access by IP when running on a remote server — add your EC2 IP here
-      LIFERAY_VIRTUAL_PERIOD_HOSTS_PERIOD_VALID_PERIOD_HOSTS: "localhost,127.0.0.1"
+      LIFERAY_VIRTUAL_PERIOD_HOSTS_PERIOD_VALID_PERIOD_HOSTS: "localhost,127.0.0.1,3.250.70.195"
     volumes:
       - liferay_data:/opt/liferay/data
-      # Hot-deploy folder: drop extra JARs here without rebuilding the image
-      - ./deploy:/mnt/liferay/deploy
     restart: unless-stopped
 
 volumes:

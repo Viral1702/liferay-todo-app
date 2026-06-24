@@ -1,24 +1,25 @@
-# Any instructions here will be appended to the end of the Dockerfile created by `createDockerfile`.# ──────────────────────────────────────────────
+# ──────────────────────────────────────────────
 # Stage 1: Build the Liferay modules
 # ──────────────────────────────────────────────
-FROM eclipse-temurin:11-jdk AS builder
+FROM eclipse-temurin:17-jdk AS builder
+
+ARG GRADLE_VERSION=8.9
+RUN apt-get update && apt-get install -y wget unzip && \
+    wget -q https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip -O /tmp/gradle.zip && \
+    unzip -q /tmp/gradle.zip -d /opt && \
+    rm /tmp/gradle.zip && \
+    ln -s /opt/gradle-${GRADLE_VERSION}/bin/gradle /usr/local/bin/gradle
 
 WORKDIR /workspace
 
-# Copy Gradle wrapper and config first (layer cache)
-COPY gradlew .
-COPY gradle/ gradle/
 COPY gradle.properties .
 COPY build.gradle .
-COPY settings.gradle* .
+COPY settings.gradle .
 COPY .blade.properties .
-
-# Copy all modules source
+COPY gradle/ gradle/
 COPY modules/ modules/
 
-# Make gradlew executable and build all module JARs
-RUN chmod +x gradlew && \
-    ./gradlew \
+RUN gradle \
         :modules:todo:todo-api:jar \
         :modules:todo:todo-service:jar \
         :modules:hello-world:jar \
@@ -31,14 +32,13 @@ RUN chmod +x gradlew && \
 # ──────────────────────────────────────────────
 FROM liferay/portal:7.4.3.132-ga132
 
-# Copy portal config for docker environment
+# Copy portal config
 COPY configs/common/portal-setup-wizard.properties /mnt/liferay/files/portal-setup-wizard.properties
 COPY configs/docker/portal-ext.properties          /mnt/liferay/files/portal-ext.properties
 
-# Copy built JARs into Liferay's hot-deploy folder
-COPY --from=builder /workspace/modules/todo/todo-api/build/libs/*.jar     /mnt/liferay/deploy/
-COPY --from=builder /workspace/modules/todo/todo-service/build/libs/*.jar /mnt/liferay/deploy/
-COPY --from=builder /workspace/modules/hello-world/build/libs/*.jar       /mnt/liferay/deploy/
+# Copy built JARs and fix ownership so the liferay user can deploy them
+COPY --from=builder --chown=liferay:liferay /workspace/modules/todo/todo-api/build/libs/*.jar     /mnt/liferay/deploy/
+COPY --from=builder --chown=liferay:liferay /workspace/modules/todo/todo-service/build/libs/*.jar /mnt/liferay/deploy/
+COPY --from=builder --chown=liferay:liferay /workspace/modules/hello-world/build/libs/*.jar       /mnt/liferay/deploy/
 
-# Expose Liferay HTTP and Gogo Shell ports
 EXPOSE 8080 11311
