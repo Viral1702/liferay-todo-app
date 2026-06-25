@@ -1,0 +1,2 @@
+operationMode="REMOTE"
+networkHostAddresses=["http://PRIVATE_IP:9200"]

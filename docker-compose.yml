@@ -1,58 +1,31 @@
 version: "3.8"
 
 services:
-
-  # ── MySQL 8 ─────────────────────────────────────────────────────────────────
-  mysql:
-    image: mysql:8.0
-    container_name: liferay-mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: lportal
-      MYSQL_USER: viral
-      MYSQL_PASSWORD: viral
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-      # Init scripts run once on first DB creation
-      - ./mysql-init:/docker-entrypoint-initdb.d:ro
-    command: >
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-      --default-authentication-plugin=mysql_native_password
-    healthcheck:
-      # Switched to root user for reliable initial ping check
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-    restart: unless-stopped
-
-  # ── Liferay (built from local Dockerfile) ───────────────────────────────────
+  # ── Liferay Application Server ──────────────────────────────────────────────
   liferay:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: liferay-portal
-    depends_on:
-      mysql:
-        condition: service_healthy
     ports:
       - "8080:8080"
       - "11311:11311"
     environment:
-      LIFERAY_JVM_OPTS: "-Xms1536m -Xmx3072m -XX:MaxMetaspaceSize=1024m"
-      LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_DRIVER_CLASS_NAME: "com.mysql.cj.jdbc.Driver"
-      LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_URL: "jdbc:mysql://mysql:3306/lportal?useUnicode=true&characterEncoding=UTF-8&useFastDateParsing=false"
-      LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_USERNAME: "viral"
-      LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_PASSWORD: "viral"
+      # FIX: Added -Dexternal-properties to point to an empty/non-existent path to bypass the bad file injection
+      LIFERAY_JVM_OPTS: "-Xms1536m -Xmx3072m -XX:MaxMetaspaceSize=1024m -Dexternal-properties=portal-setup-wizard.properties"
+      
+      # Standard direct environment mappings for database connection configuration
+      LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_DRIVER_UPPERCASEC_LASS_UPPERCASEN_AME: "com.mysql.cj.jdbc.Driver"
+      LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_URL: "jdbc:mysql://liferay-database.clmi8oqio7oo.eu-west-1.rds.amazonaws.com:3306/lportal?useUnicode=true&characterEncoding=UTF-8&useFastDateParsing=false&sslMode=REQUIRED"
+      LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_USERNAME: "root"
+      LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_PASSWORD: "YOUR_PASSWORD" 
+      
       LIFERAY_VIRTUAL_PERIOD_HOSTS_PERIOD_VALID_PERIOD_HOSTS: "*"
     volumes:
       - liferay_data:/opt/liferay/data
+      - ./certs:/opt/liferay/certs:ro
+      - ./configs/docker/osgi/configs:/mnt/liferay/files/osgi/configs:ro
     restart: unless-stopped
 
 volumes:
-  mysql_data:
   liferay_data:
